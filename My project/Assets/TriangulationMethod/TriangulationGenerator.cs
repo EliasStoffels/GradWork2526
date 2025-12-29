@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Profiling;
 public class Room
 {
     public Vector3Int gridPosition;
@@ -36,6 +37,32 @@ public class TriangulationGenerator : MonoBehaviour
 
     private List<Edge> m_Edges = new List<Edge>();
     private List<Edge> m_RoomConnections = new List<Edge>();
+
+    public void SetTargetRoomCount(int targetCount)
+    {
+        m_TargetRoomCount = targetCount;
+    }
+
+    public void SetDungeonBounds(Vector3Int bounds)
+    {
+        m_DungeonBounds = bounds;
+    }
+
+    public void SetSeed(int seed)
+    {
+        m_Seed = seed;
+    }
+
+    public float GetSuccesRate()
+    {
+        return (float)m_FinalRoomCount / (float)m_TargetRoomCount;
+    }
+
+    public List<Edge> GetRoomConnections()
+    {
+        return m_RoomConnections;
+    }
+
     public void Generate()
     {
         Initialize();
@@ -46,11 +73,46 @@ public class TriangulationGenerator : MonoBehaviour
         Generate3DModels();
     }
 
-    private void Initialize()
+    public float GenerateMemoryProfile()
+    {
+        float maxMemKB = float.MinValue;
+
+        Initialize();
+        long current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        GenerateRooms();
+        current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        TriangulateRooms();
+        current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        GenerateConnections();
+        current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        GenerateHallways();
+        current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        Generate3DModels();
+        current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+
+        return maxMemKB;
+    }
+
+    public void RemovePreviousDungeon()
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
             Destroy(transform.GetChild(i).gameObject);
+    }
 
+    private void Initialize()
+    {
         m_Edges.Clear();
         m_RoomConnections.Clear();
         m_FinalRoomCount = 0;
