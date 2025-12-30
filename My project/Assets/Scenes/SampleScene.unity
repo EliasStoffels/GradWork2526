@@ -119,6 +119,56 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &172924397
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 172924399}
+  - component: {fileID: 172924398}
+  m_Layer: 0
+  m_Name: TriangulationRunner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &172924398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172924397}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d85c37ecc36f7a4c82ac98e7fbc4d93, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TriangulationRunner
+  m_Generator: {fileID: 439435760}
+  m_NrRuns: 10
+  m_RoomCounts: 0a0000001400000032000000
+  m_DungeonSizes:
+  - {x: 10, y: 10, z: 10}
+  - {x: 20, y: 20, z: 20}
+--- !u!4 &172924399
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172924397}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 6.22636, y: 0, z: -3.68853}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -980,9 +1030,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 439435760}
-        m_TargetAssemblyTypeName: TriangulationGenerator, Assembly-CSharp
-        m_MethodName: Generate
+      - m_Target: {fileID: 172924398}
+        m_TargetAssemblyTypeName: TriangulationRunner, Assembly-CSharp
+        m_MethodName: GatherData
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1115,7 +1165,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 94445742701346910}
         m_TargetAssemblyTypeName: SpaceTestingGenerator, Assembly-CSharp
-        m_MethodName: Generate
+        m_MethodName: Regenerate
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1241,15 +1291,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpaceTestingGenerator
   m_Seed: 0
-  m_DungeonBounds: {x: 10, y: 10, z: 10}
-  m_TargetRoomCount: 20
+  m_DungeonBounds: {x: 40, y: 40, z: 40}
+  m_TargetRoomCount: 500
   m_RoomAttempts: 10
   m_CorridorAttempts: 10
   m_StartRoom: {fileID: 959505817840539776, guid: de9972fc56ad16d459e67ab904108483, type: 3}
   m_ColliderLeeway: {x: 0.1, y: 0.1, z: 0.1}
   m_RoomChance: 0.5
   m_RoomPrefabs:
-  - {fileID: 1123940594471833140, guid: 91a6ff6900493b4488b1b02b707b42c5, type: 3}
   - {fileID: 959505817840539776, guid: de9972fc56ad16d459e67ab904108483, type: 3}
   - {fileID: 4428080094495711977, guid: 89a16e788a108784a8060ccea0e93276, type: 3}
   m_CorridorPrefabs:
@@ -1384,3 +1433,4 @@ SceneRoots:
   - {fileID: 94445742701346906}
   - {fileID: 400157606}
   - {fileID: 897838148}
+  - {fileID: 172924399}

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
 public class Room
@@ -63,6 +64,16 @@ public class TriangulationGenerator : MonoBehaviour
         return m_RoomConnections;
     }
 
+    public int GetFinalRoomCount()
+    {
+        return m_FinalRoomCount;
+    }
+
+    public Room[] GetRooms()
+    {
+            return m_Rooms;
+    }
+
     public void Generate()
     {
         Initialize();
@@ -75,6 +86,12 @@ public class TriangulationGenerator : MonoBehaviour
 
     public float GenerateMemoryProfile()
     {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        long memBefore = Profiler.GetMonoUsedSizeLong();
+
         float maxMemKB = float.MinValue;
 
         Initialize();
@@ -101,8 +118,9 @@ public class TriangulationGenerator : MonoBehaviour
         current = Profiler.GetMonoUsedSizeLong();
         maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
 
+        float maxMemUsed = maxMemKB - (memBefore / 1024f);
 
-        return maxMemKB;
+        return maxMemUsed;
     }
 
     public void RemovePreviousDungeon()

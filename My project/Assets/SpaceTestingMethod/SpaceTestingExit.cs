@@ -12,11 +12,11 @@ public class SpaceTestingExit : MonoBehaviour
     [SerializeField]
     private ExitType m_ExitType;
 
-    private bool m_IsConnected = false;
+    private SpaceTestingExit m_ConnectedExit;
 
-    public void Connect()
+    public void Connect(SpaceTestingExit connectedExit)
     {
-        m_IsConnected = true;
+        m_ConnectedExit = connectedExit;
     }
     public void Close()
     {
@@ -25,7 +25,7 @@ public class SpaceTestingExit : MonoBehaviour
 
     public bool IsClosedOrConnected()
     {
-        if (m_IsConnected)
+        if (m_ConnectedExit != null)
             return true;
 
         return m_ClosedExit.activeSelf;

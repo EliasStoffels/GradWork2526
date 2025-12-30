@@ -95,7 +95,6 @@ public class SpaceTestingGenerator : MonoBehaviour
                 if (newModule != null)
                 {
                     m_Exits.AddRange(newModule.GetExits());
-                    openExit.Connect();
                 }
                 else
                     openExit.Close();
@@ -171,7 +170,8 @@ public class SpaceTestingGenerator : MonoBehaviour
 
                 if (!hits.Any(hit => (hit != newModule.GetAproxCollider())))
                 {
-                    connectedExit.Connect();
+                    connectedExit.Connect(exit);
+                    exit.Connect(connectedExit);
                     break;
                 }
             }
@@ -220,7 +220,8 @@ public class SpaceTestingGenerator : MonoBehaviour
                 if (!hits.Any(hit => (hit != newModule.GetAproxCollider())))
                 {
                     ++m_FinalRoomCount;
-                    connectedExit.Connect();
+                    connectedExit.Connect(exit);
+                    exit.Connect(connectedExit);
                     break;
                 }
             }
