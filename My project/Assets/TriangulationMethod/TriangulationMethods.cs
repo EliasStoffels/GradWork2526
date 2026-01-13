@@ -25,6 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
 
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -116,6 +117,102 @@ public class TriangulationMethods
                                || tetrahedron.Contains(p3) || tetrahedron.Contains(p4));
 
         return tetrahedra;
+    }
+    public static IEnumerator TriangulateCo(Vector3[] vertices, System.Action<List<Tetrahedron>> onStepComplete)
+    {
+        //find "bounding" tetrahedron (all points reside within it)
+        float minX = vertices[0].x;
+        float minY = vertices[0].y;
+        float minZ = vertices[0].z;
+        float maxX = minX;
+        float maxY = minY;
+        float maxZ = minZ;
+
+        foreach (var vertice in vertices)
+        {
+            if (vertice.x < minX) minX = vertice.x;
+            if (vertice.x > maxX) maxX = vertice.x;
+            if (vertice.y < minY) minY = vertice.y;
+            if (vertice.y > maxY) maxY = vertice.y;
+            if (vertice.z < minZ) minZ = vertice.z;
+            if (vertice.z > maxZ) maxZ = vertice.z;
+        }
+
+        float dx = maxX - minX;
+        float dy = maxY - minY;
+        float dz = maxZ - minZ;
+        float deltaMax = Mathf.Max(dx, dy, dz) * 2;
+
+        Vector3 p1 = new Vector3(minX - 1, minY - 1, minZ - 1);
+        Vector3 p2 = new Vector3(maxX + deltaMax, minY - 1, minZ - 1);
+        Vector3 p3 = new Vector3(minX - 1, maxY + deltaMax, minZ - 1);
+        Vector3 p4 = new Vector3(minX - 1, minY - 1, maxZ + deltaMax);
+
+        //start list with this "bounding" tetrahedron
+        List<Tetrahedron> tetrahedra = new List<Tetrahedron>
+        {
+            new Tetrahedron(p1, p2, p3, p4)
+        };
+
+
+        foreach (var vertice in vertices)
+        {
+            List<Tetrahedron> badTetrahedra = new List<Tetrahedron>();
+
+            // if a tetrahedron contains this point it is a "bad" tetrahedron
+            foreach (Tetrahedron tetrahedron in tetrahedra)
+            {
+                if (float.IsInfinity(tetrahedron.CircumRadiusSquared) ||
+                    float.IsNaN(tetrahedron.CircumCenter.x))
+                    continue; // Skip degenerate
+
+                if (Vector3.SqrMagnitude(vertice - tetrahedron.CircumCenter) < tetrahedron.CircumRadiusSquared)
+                    badTetrahedra.Add(tetrahedron);
+            }
+
+            // if a tetrahedron is "bad" create the new triangles to connect to the new room
+            List<Triangle> triangles = new List<Triangle>();
+            foreach (var badTetrahedron in badTetrahedra)
+            {
+                foreach (var triangle in badTetrahedron.Triangles)
+                {
+                    bool shared = false;
+                    foreach (var otherBad in badTetrahedra)
+                    {
+                        if (otherBad == badTetrahedron) continue;
+                        if (otherBad.Contains(triangle))
+                        {
+                            shared = true;
+                            break;
+                        }
+                    }
+                    if (!shared)
+                        triangles.Add(triangle);
+                }
+            }
+
+            // remove all bad tetrahedrons
+            tetrahedra.RemoveAll(tetrahedron => badTetrahedra.Contains(tetrahedron));
+
+            // add new tetrahedrons that include new point
+            foreach (var tri in triangles)
+                tetrahedra.Add(new Tetrahedron(tri.v1, tri.v2, tri.v3, vertice));
+
+            onStepComplete?.Invoke(new List<Tetrahedron>(tetrahedra));
+            Debug.Log("Triangulation step");
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+        }
+
+        // remove all tetrahedrons conatining the starting points
+        tetrahedra.RemoveAll(tetrahedron => tetrahedron.Contains(p1) || tetrahedron.Contains(p2)
+                               || tetrahedron.Contains(p3) || tetrahedron.Contains(p4));
+
+        onStepComplete?.Invoke(tetrahedra);
     }
 }
 

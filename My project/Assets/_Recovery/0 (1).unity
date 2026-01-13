@@ -256,8 +256,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.20309779, y: 0.41908565, z: -0.09464948, w: 0.8798636}
-  m_LocalPosition: {x: -20.66, y: 11.5, z: -18.74}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -25}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1031,9 +1031,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 439435760}
-        m_TargetAssemblyTypeName: TriangulationGenerator, Assembly-CSharp
-        m_MethodName: GenerateStepByStep
+      - m_Target: {fileID: 172924398}
+        m_TargetAssemblyTypeName: TriangulationRunner, Assembly-CSharp
+        m_MethodName: GatherData
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1114,7 +1114,9 @@ MonoBehaviour:
   m_NrRuns: 10
   m_RoomCounts: 0a000000190000003200000064000000fa000000f4010000
   m_DungeonSizes:
+  - {x: 10, y: 10, z: 10}
   - {x: 25, y: 25, z: 25}
+  - {x: 50, y: 50, z: 50}
 --- !u!4 &1608265346
 Transform:
   m_ObjectHideFlags: 0
@@ -1148,7 +1150,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2106000061
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1213,9 +1215,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 94445742701346910}
-        m_TargetAssemblyTypeName: SpaceTestingGenerator, Assembly-CSharp
-        m_MethodName: GenerateStepByStep
+      - m_Target: {fileID: 1608265345}
+        m_TargetAssemblyTypeName: SpaceTestingRunner, Assembly-CSharp
+        m_MethodName: GatherData
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1315,10 +1317,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: SpaceTestingGenerator
       objectReference: {fileID: 0}
-    - target: {fileID: 8141577112656401547, guid: 5fed1be2653119845980875e69afba88, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1344,9 +1342,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 035bd5d8a4f58ad4789950bd92254554, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpaceTestingGenerator
-  m_Seed: 12
-  m_DungeonBounds: {x: 20, y: 20, z: 20}
-  m_TargetRoomCount: 100
+  m_Seed: 0
+  m_DungeonBounds: {x: 40, y: 40, z: 40}
+  m_TargetRoomCount: 500
   m_RoomAttempts: 10
   m_CorridorAttempts: 10
   m_StartRoom: {fileID: 959505817840539776, guid: de9972fc56ad16d459e67ab904108483, type: 3}
@@ -1381,7 +1379,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 180991343047132114, guid: bdf527aa79fd70d469773c4543ec8604, type: 3}
       propertyPath: m_RoomAttempts
-      value: 5
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 180991343047132114, guid: bdf527aa79fd70d469773c4543ec8604, type: 3}
       propertyPath: m_MaxRoomSize.x

@@ -25,6 +25,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
 
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -75,5 +76,60 @@ public class MinimumSpanningTree
         }
 
         return results;
+    }
+    public static IEnumerator GenerateMSPCo(List<Edge> edges, Vector3 start, System.Action<List<Edge>> onStepComplete)
+    {
+        HashSet<Vector3> openSet = new HashSet<Vector3>();
+        HashSet<Vector3> closedSet = new HashSet<Vector3>();
+
+        foreach (var edge in edges)
+        {
+            openSet.Add(edge.v1);
+            openSet.Add(edge.v2);
+        }
+
+        closedSet.Add(start);
+
+        List<Edge> results = new List<Edge>();
+
+        while (openSet.Count > 0)
+        {
+            bool chosen = false;
+            Edge chosenEdge = null;
+            float minWeight = float.PositiveInfinity;
+
+            foreach (var edge in edges)
+            {
+                int closedVertices = 0;
+                if (!closedSet.Contains(edge.v1)) closedVertices++;
+                if (!closedSet.Contains(edge.v2)) closedVertices++;
+                if (closedVertices != 1) continue;
+
+                if (edge.distance < minWeight)
+                {
+                    chosenEdge = edge;
+                    chosen = true;
+                    minWeight = edge.distance;
+                }
+            }
+
+            if (!chosen) break;
+            results.Add(chosenEdge);
+            openSet.Remove(chosenEdge.v1);
+            openSet.Remove(chosenEdge.v2);
+            closedSet.Add(chosenEdge.v1);
+            closedSet.Add(chosenEdge.v2);
+
+            onStepComplete.Invoke(results);
+
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+        }
+
+        onStepComplete.Invoke(results);
     }
 }

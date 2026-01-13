@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
 using UnityEditor.Experimental.GraphView;
+using System;
+using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 public class SpaceTestingGenerator : MonoBehaviour
 {
@@ -36,11 +39,109 @@ public class SpaceTestingGenerator : MonoBehaviour
     private GameObject[] m_RoomPrefabsCopy;
     private GameObject[] m_CorridorPrefabsCopy;
 
+    public void SetTargetRoomCount(int targetCount)
+    {
+        m_TargetRoomCount = targetCount;
+    }
+
+    public void SetDungeonBounds(Vector3Int bounds)
+    {
+        m_DungeonBounds = bounds;
+    }
+
+    public void SetSeed(int seed)
+    {
+        m_Seed = seed;
+    }
+
+    public float GetSuccesRate()
+    {
+        return (float)m_FinalRoomCount / (float)m_TargetRoomCount;
+    }
+    public int GetFinalRoomCount()
+    {
+        return m_FinalRoomCount;
+    }
+
+
     public void Generate()
     {
         Initialize();
         SpawnStartingRoom();
         SpawnOtherModules();
+    }
+
+    public void GenerateStepByStep()
+    {
+        Initialize();
+        SpawnStartingRoom();
+        StartCoroutine(SpawnOtherModulesCo());
+    }
+
+    public IEnumerator SpawnOtherModulesCo()
+    {
+        yield return null;
+        while (m_FinalRoomCount < m_TargetRoomCount)
+        {
+            var openExit = m_Exits.Find((exit) => !exit.IsClosedOrConnected());
+            if (openExit != null)
+            {
+                var newModule = TrySpawnNewModule(openExit);
+
+                if (newModule != null)
+                {
+                    m_Exits.AddRange(newModule.GetExits());
+                }
+                else
+                    openExit.Close();
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+                yield return null;
+            }
+            else
+            {
+                Debug.Log("stopepd coroutine");
+                StopAllCoroutines();
+            }    
+        }
+
+        var openExits = m_Exits.FindAll((exit) => !exit.IsClosedOrConnected());
+        foreach (var exit in openExits)
+        {
+            exit.Close();
+        }
+    }
+
+    public float GenerateMemoryProfile()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        long memBefore = Profiler.GetMonoUsedSizeLong();
+
+        float maxMemKB = float.MinValue;
+
+        Initialize();
+        long current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        SpawnStartingRoom();
+        current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        SpawnOtherModules();
+        current = Profiler.GetMonoUsedSizeLong();
+        maxMemKB = Mathf.Max(maxMemKB, current / 1024f);
+
+        float maxMemUsed = maxMemKB - (memBefore / 1024f);
+
+        return maxMemUsed;
     }
 
     public void RemovePreviousDungeon()

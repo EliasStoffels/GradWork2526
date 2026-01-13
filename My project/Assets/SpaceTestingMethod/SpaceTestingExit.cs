@@ -14,6 +14,11 @@ public class SpaceTestingExit : MonoBehaviour
 
     private SpaceTestingExit m_ConnectedExit;
 
+    public SpaceTestingExit GetConnectedExit()
+    {
+        return m_ConnectedExit;
+    }
+
     public void Connect(SpaceTestingExit connectedExit)
     {
         m_ConnectedExit = connectedExit;

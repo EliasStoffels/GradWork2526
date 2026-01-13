@@ -1301,6 +1301,10 @@ PrefabInstance:
       value: 0.7
       objectReference: {fileID: 0}
     - target: {fileID: 8171323880950467040, guid: 96bbd5ace12c0374a887f5f8175651c0, type: 3}
+      propertyPath: m_ModuleType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8171323880950467040, guid: 96bbd5ace12c0374a887f5f8175651c0, type: 3}
       propertyPath: m_Exits.Array.size
       value: 4
       objectReference: {fileID: 0}

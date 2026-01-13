@@ -4,28 +4,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text;
+using System.Collections;
+public struct RunnerResults
+{
+    public float timeMiliseconds;
+    public float maxMem;
+    public float succesRate;
+    public float standardDeviationFromY0;
+    public int levelConnections;
+    public int discontinuesLevelConnections;
+    public int loops;
+}
+
+public struct CSVExport
+{
+    public int roomCount;
+    public RunnerResults minimum;
+    public RunnerResults maximum;
+    public RunnerResults trimmedAverage;
+}
 
 public class TriangulationRunner : MonoBehaviour
 {
-    struct TriangulationRunnerResults
-    {
-        public float timeMiliseconds;
-        public float maxMem;
-        public float succesRate;
-        public float standardDeviationFromY0;
-        public int levelConnections;
-        public int discontinuesLevelConnections;
-        public int loops;
-    }
-
-    struct TriangulationCsvExport
-    {
-        public int roomCount;
-        public TriangulationRunnerResults minimum;
-        public TriangulationRunnerResults maximum;
-        public TriangulationRunnerResults trimmedAverage;
-    }
-
     [SerializeField]
     private TriangulationGenerator m_Generator;
     [SerializeField]
@@ -35,28 +35,36 @@ public class TriangulationRunner : MonoBehaviour
     [SerializeField]
     private Vector3Int[] m_DungeonSizes;
 
-    List<TriangulationRunnerResults> m_Results = new List<TriangulationRunnerResults>();
-    List<TriangulationCsvExport> m_TriangulationExport = new List<TriangulationCsvExport>();
-
+    List<RunnerResults> m_Results = new List<RunnerResults>();
+    List<CSVExport> m_TriangulationExport = new List<CSVExport>();
+    
     public void GatherData()
+    {
+        StartCoroutine(GatherDataCo());
+    }
+
+    public IEnumerator GatherDataCo()
     {
         foreach(var size in m_DungeonSizes)
         {
             m_Generator.SetDungeonBounds(size);
+            UnityEngine.Debug.Log($"Set Dungeon size to {size}");
 
             m_TriangulationExport.Clear();
             foreach(var count in m_RoomCounts)
             {
                 m_Generator.SetTargetRoomCount(count);
+                UnityEngine.Debug.Log($"Set target room count to {count}");
 
                 m_Results.Clear();
 
                 for (int runIdx = 0; runIdx < m_NrRuns; ++runIdx)
                 {
-                    TriangulationRunnerResults results = new TriangulationRunnerResults();
+                    RunnerResults results = new RunnerResults();
 
                     m_Generator.SetSeed(runIdx);
                     m_Generator.RemovePreviousDungeon();
+                    yield return null;
 
                     Stopwatch sw = Stopwatch.StartNew();
                     m_Generator.Generate();
@@ -95,30 +103,31 @@ public class TriangulationRunner : MonoBehaviour
                     results.standardDeviationFromY0 = Mathf.Sqrt(sumSq / m_Generator.GetFinalRoomCount());
 
                     m_Generator.RemovePreviousDungeon();
+                    yield return null;
 
                     results.maxMem = m_Generator.GenerateMemoryProfile();
 
                     m_Results.Add(results);
                 }
 
-                TriangulationCsvExport export = new TriangulationCsvExport();
+                CSVExport export = new CSVExport();
                 export.roomCount = count;
                 float trim = 0.1f;
 
                 export.trimmedAverage.timeMiliseconds =
-                    TrimmedAverage(m_Results.Select(r => r.timeMiliseconds), trim);
+                    DataWriteHelper.TrimmedAverage(m_Results.Select(r => r.timeMiliseconds), trim);
                 export.trimmedAverage.maxMem =
-                    TrimmedAverage(m_Results.Select(r => r.maxMem), trim);
+                    DataWriteHelper.TrimmedAverage(m_Results.Select(r => r.maxMem), trim);
                 export.trimmedAverage.succesRate =
-                    TrimmedAverage(m_Results.Select(r => r.succesRate), trim);
+                    DataWriteHelper.TrimmedAverage(m_Results.Select(r => r.succesRate), trim);
                 export.trimmedAverage.standardDeviationFromY0 =
-                    TrimmedAverage(m_Results.Select(r => r.standardDeviationFromY0), trim);
+                    DataWriteHelper.TrimmedAverage(m_Results.Select(r => r.standardDeviationFromY0), trim);
                 export.trimmedAverage.levelConnections =
-                    Mathf.RoundToInt(TrimmedAverage(m_Results.Select(r => (float)r.levelConnections), trim));
+                    Mathf.RoundToInt(DataWriteHelper.TrimmedAverage(m_Results.Select(r => (float)r.levelConnections), trim));
                 export.trimmedAverage.discontinuesLevelConnections =
-                    Mathf.RoundToInt(TrimmedAverage(m_Results.Select(r => (float)r.discontinuesLevelConnections), trim));
+                    Mathf.RoundToInt(DataWriteHelper.TrimmedAverage(m_Results.Select(r => (float)r.discontinuesLevelConnections), trim));
                 export.trimmedAverage.loops =
-                    Mathf.RoundToInt(TrimmedAverage(m_Results.Select(r => (float)r.loops), trim));
+                    Mathf.RoundToInt(DataWriteHelper.TrimmedAverage(m_Results.Select(r => (float)r.loops), trim));
 
                 export.minimum.timeMiliseconds = m_Results.Min(r => r.timeMiliseconds);
                 export.minimum.maxMem = m_Results.Min(r => r.maxMem);
@@ -137,12 +146,17 @@ public class TriangulationRunner : MonoBehaviour
                 export.maximum.loops = m_Results.Max(r => r.loops);
 
                 m_TriangulationExport.Add(export);
+                yield return null;
             }
-            WriteCsv(size);
+            DataWriteHelper.WriteCsv(size, m_TriangulationExport, "Triangulation");
+            yield return null;
         }
     }
+}
 
-    private float TrimmedAverage(IEnumerable<float> values, float trimFraction)
+public class DataWriteHelper
+{
+    public static float TrimmedAverage(IEnumerable<float> values, float trimFraction)
     {
         var sorted = values.OrderBy(v => v).ToList();
         int n = sorted.Count;
@@ -167,25 +181,25 @@ public class TriangulationRunner : MonoBehaviour
         return count > 0 ? sum / count : 0f;
     }
 
-    private void WriteCsv(Vector3Int dungeonSize)
+    public static void WriteCsv(Vector3Int dungeonSize, List<CSVExport> exportData, string name)
     {
-        string fileName = $"{dungeonSize.x}x{dungeonSize.y}x{dungeonSize.z}_Triangulation.csv";
+        string fileName = $"{dungeonSize.x}x{dungeonSize.y}x{dungeonSize.z}_{name}.csv";
         string path = Path.Combine(Application.persistentDataPath, fileName);
 
         StringBuilder sb = new StringBuilder();
 
         sb.AppendLine(
-            "RoomCount," +
-            "MinTimeMs,AvgTimeMs,MaxTimeMs," +
-            "MinMem,AvgMem,MaxMem," +
-            "MinSuccess,AvgSuccess,MaxSuccess," +
-            "MinStdY,AvgStdY,MaxStdY," +
-            "MinLevelConn,AvgLevelConn,MaxLevelConn," +
-            "MinDiscontConn,AvgDiscontConn,MaxDiscontConn," +
-            "MinLoops,AvgLoops,MaxLoops"
+            "RoomCount;" +
+            "MinTimeMs;AvgTimeMs;MaxTimeMs;" +
+            "MinMemKb;AvgMemKb;MaxMemKb;" +
+            "MinSuccess;AvgSuccess;MaxSuccess;" +
+            "MinStdYM;AvgStdYM;MaxStdYM;" +
+            "MinLevelConn;AvgLevelConn;MaxLevelConn;" +
+            "MinDiscontConn;AvgDiscontConn;MaxDiscontConn;" +
+            "MinLoops;AvgLoops;MaxLoops"
         );
 
-        foreach (var entry in m_TriangulationExport)
+        foreach (var entry in exportData)
         {
             sb.AppendLine(
                 $"{entry.roomCount};" +
@@ -222,7 +236,6 @@ public class TriangulationRunner : MonoBehaviour
         }
 
         File.WriteAllText(path, sb.ToString());
-        UnityEngine.Debug.Log($"Triangulation CSV written to:\n{path}");
+        UnityEngine.Debug.Log($"CSV written to:\n{path}");
     }
-
 }

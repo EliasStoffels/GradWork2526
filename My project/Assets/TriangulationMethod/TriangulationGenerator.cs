@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -123,6 +124,67 @@ public class TriangulationGenerator : MonoBehaviour
         return maxMemUsed;
     }
 
+    public void GenerateStepByStep()
+    {
+        StartCoroutine(GenerateStepByStepCo());
+       
+    }
+
+    public IEnumerator GenerateStepByStepCo()
+    {
+        Initialize();
+        yield return StartCoroutine(GenerateRoomsCo());
+
+        Vector3[] roomPositions = new Vector3[m_FinalRoomCount];
+        for (int roomIdx = 0; roomIdx < m_FinalRoomCount; ++roomIdx)
+        {
+            roomPositions[roomIdx] = m_Rooms[roomIdx].gridPosition;
+        }
+        yield return StartCoroutine(TriangulationMethods.TriangulateCo(roomPositions, (result) => { m_Edges = GraphBuilder.GenerateEdges(result); m_RoomConnections = m_Edges; }));
+
+        yield return StartCoroutine(MinimumSpanningTree.GenerateMSPCo(m_Edges, m_Edges[0].v1,(result)=>{ m_RoomConnections = result; }));
+
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+        yield return null;
+
+        GenerateHallways();
+        Generate3DModels();
+        Debug.Log("done generating step by step");
+    }
+
+    private IEnumerator GenerateRoomsCo()
+    {
+        yield return null;
+        Vector3Int position = Vector3Int.zero;
+        for (int roomIdx = 0; roomIdx < m_TargetRoomCount; ++roomIdx)
+        {
+            position.x = m_Random.Next(m_DungeonBounds.x - m_MinRoomSize.x + 1);
+            position.y = m_Random.Next(m_DungeonBounds.y - m_MinRoomSize.y + 1);
+            position.z = m_Random.Next(m_DungeonBounds.z - m_MinRoomSize.z + 1);
+
+            TrySpawnRoom(position);
+
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+        }
+    }
+
     public void RemovePreviousDungeon()
     {
         for (int i = transform.childCount - 1; i >= 0; i--)
@@ -172,6 +234,11 @@ public class TriangulationGenerator : MonoBehaviour
                 currentRoom.size = roomSize;
                 m_Rooms[m_FinalRoomCount] = currentRoom;
                 ++m_FinalRoomCount;
+
+                var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.transform.parent = this.transform;
+                cube.transform.position = currentRoom.gridPosition - (Vector3)m_DungeonBounds / 2 + currentRoom.size / 2;
+
                 return;
             }
 
@@ -258,11 +325,17 @@ public class TriangulationGenerator : MonoBehaviour
     {
         var pathfinder = new AStar3D(CalculateAStarCost, m_DungeonBounds);
 
+        Vector3Int start = new Vector3Int();
+        Vector3Int end = new Vector3Int();
+
         foreach (Edge edge in m_RoomConnections)
         {
-            Vector3Int start = new Vector3Int((int)edge.v1.x, (int)edge.v1.y, (int)edge.v1.z);
-            Vector3Int end = new Vector3Int((int)edge.v2.x, (int)edge.v2.y, (int)edge.v2.z);
-
+            start.x = (int)edge.v1.x;
+            start.y = (int)edge.v1.y;
+            start.z = (int)edge.v1.z;
+            end.x = (int)edge.v2.x;
+            end.y = (int)edge.v2.y;
+            end.z = (int)edge.v2.z;
             List<Vector3Int> path = pathfinder.FindPath(start, end);
             if (path == null) continue;
 
@@ -332,7 +405,7 @@ public class TriangulationGenerator : MonoBehaviour
             Gizmos.color = UnityEngine.Color.cyan;
             foreach (var e in m_RoomConnections)
             {
-                Gizmos.DrawLine(e.v1, e.v2);
+                Gizmos.DrawLine(e.v1 - (Vector3)m_DungeonBounds / 2 + Vector3.one / 2, e.v2 - (Vector3)m_DungeonBounds / 2 + Vector3.one / 2);
             }
         }
     }

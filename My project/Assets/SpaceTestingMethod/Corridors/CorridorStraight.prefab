@@ -628,6 +628,7 @@ MonoBehaviour:
   - {fileID: 4244287942492291003}
   - {fileID: 2197002597242362629}
   m_AproxCollider: {fileID: 8313233621207372539}
+  m_ModuleType: 1
 --- !u!1 &7279893002022939506
 GameObject:
   m_ObjectHideFlags: 0
